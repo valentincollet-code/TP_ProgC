@@ -15,7 +15,7 @@ int main() {
     // Extraction du 20ème bit de gauche (index 12)
     int bit20 = (d >> 12) & 1;
 
-    // Vérification : si les deux sont à 1
+    // Vérification : si les deux sont à 1!
     if (bit4 == 1 && bit20 == 1) {
         printf("1\n");
     } else {
