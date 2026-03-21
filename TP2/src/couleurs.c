@@ -7,6 +7,7 @@ struct Couleur {
     unsigned char b; // Bleu
     unsigned char a; // Alpha (transparence)
 };
+// Couleur format RGBA
 
 int main() {
     // Création d'un tableau de 10 structures Couleur
