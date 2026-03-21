@@ -6,10 +6,10 @@ int main() {
     double rayon, aire, perimetre;
 
     // Initialisation du rayon (tu peux changer cette valeur)
-    rayon = 10.0;
+    rayon = 50;
 
     // Calculs
-    // On utilise M_PI défini dans math.h
+    // On utilise M_PI défini dans la bibliothèque math.h
     aire = M_PI * rayon * rayon;
     perimetre = 2 * M_PI * rayon;
 
