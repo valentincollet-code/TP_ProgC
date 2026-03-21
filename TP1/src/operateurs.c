@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 int main() {
-    // Initialisation des variables
-    int a = 16;
-    int b = 3;
+    // Initialisation des variables (on peut modifier les variables)
+    int a = 39;
+    int b = 435;
 
     printf("Valeurs : a = %d, b = %d\n\n", a, b);
 
