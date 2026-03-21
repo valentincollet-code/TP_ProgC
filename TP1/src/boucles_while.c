@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int main() {
-    int compteur = 5;
+    int compteur = 8;
     int i = 1;
 
     while (i <= compteur) {
