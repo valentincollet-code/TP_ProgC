@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 int main() {
-    // 1. Tableau de phrases (chaque phrase est un pointeur vers des caractères)
+    // 1. Tableau de phrases en exemple (chaque phrase est un pointeur vers des caractères)
     char *phrases[10] = {
         "Bonjour, comment ca va ?",
         "Il fait beau aujourd'hui.",
