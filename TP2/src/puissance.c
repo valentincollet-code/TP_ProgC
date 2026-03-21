@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 int main() {
-    // 1. Déclaration et initialisation des variables
-    int a = 2;         // La base
-    int b = 3;         // L'exposant
+    // 1. Déclaration et initialisation des variables (a et b modifiable
+    int a = 5;         // La base
+    int b = 6;         // L'exposant
     long resultat = 1; // On commence à 1 pour la multiplication
 
     // 2. Calcul de la puissance avec une boucle for
