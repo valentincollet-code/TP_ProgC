@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 int main() {
-    int num1 = 10;
-    int num2 = 5;
-    char op = '*'; // On peut changer le type d'opérations (+, -, *, /, %, &, |, ~)
+    int num1 = 14;
+    int num2 = 4;
+    char op = '/'; // type d'opérations modifiable: (+, -, *, /, %, &, |, ~)
 
     printf("Calcul : %d %c %d\n", num1, op, num2);
 
