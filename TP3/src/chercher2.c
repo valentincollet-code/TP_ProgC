@@ -10,7 +10,7 @@ int main() {
         "Il fait beau aujourd'hui.",
         "Beaucoup d'exercice dans ce TP !.",
         "J'ai utilisé CLion.",
-        "La procgrammation en C est intéressante.",
+        "La programmation en C est intéressante.",
         "C'est le week-end.",
         "Il fait beau dehors.",
         "La recherche dans un tableau est interessante.",
