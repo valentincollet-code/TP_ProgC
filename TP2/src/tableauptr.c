@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+// Gestion de deux tableaux avec utilisation de pointeurs
+
 int main() {
     int taille = 10;
     int tab_int[taille];
