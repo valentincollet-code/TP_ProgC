@@ -15,11 +15,11 @@ int main() {
     struct Etudiant classe[5];
 
     // Initialisation du premier étudiant avec strcpy
-    strcpy(classe[0].nom, "Dupont");
-    strcpy(classe[0].prenom, "Marie");
-    strcpy(classe[0].adresse, "20, Boulevard Niels Bohr, Lyon");
-    classe[0].note_prog = 16.5;
-    classe[0].note_os = 12.1;
+    strcpy(classe[0].nom, "COLLET");
+    strcpy(classe[0].prenom, "Valentin");
+    strcpy(classe[0].adresse, "2 rue des Abricotiers, Savigny-sur-Orge");
+    classe[0].note_prog = 16;
+    classe[0].note_os = 18;
 
     // Ajout d'un deuxième étudiant pour l'exemple
     strcpy(classe[1].nom, "Martin");
