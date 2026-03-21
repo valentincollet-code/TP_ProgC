@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+// Affiche les valeurs des variables des différents types de base
 int main() {
     // 1. Déclaration et affectation
     char c = 'A';
