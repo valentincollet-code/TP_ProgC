@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int main() {
-    int n = 7; // On veut afficher jusqu'à U7
+    int n = 8; // On veut afficher jusqu'à U8
     int u0 = 0;
     int u1 = 1;
     int suivant;
