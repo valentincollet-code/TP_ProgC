@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+//Affiche la taille en octets des différents types de base
 int main() {
     printf("--- Tailles des types de base (en octets) ---\n\n");
 
