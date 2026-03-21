@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+// On reprends le fichier variables.c
+
 int main() {
     // 1. Déclaration des variables de base
     int i = 0x1234;
