@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
         printf("Utilisation : %s <nom_du_repertoire>\n", argv[0]);
         return 1;
     }
-    printf("--- Liste Récursive ---\n");
-    lire_dossier_recursif(argv[1]);
+    printf("--- Liste Itérative ---\n");
+    lire_dossier_iteratif(argv[1]);
     return 0;
 }

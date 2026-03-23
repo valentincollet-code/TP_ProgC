@@ -1,28 +1,35 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <string.h>
+#include <stdlib.h>
 #include "repertoire.h"
 
-void lire_dossier_recursif(char *nom_repertoire) {
-    struct dirent *lecture;
-    DIR *rep = opendir(nom_repertoire);
-    char chemin[1024];
+void lire_dossier_iteratif(char *nom_depart) {
+    // On va utiliser un tableau de chaînes pour stocker les dossiers à visiter
+    char dossiers[100][1024]; 
+    int index = 0;
+    
+    strcpy(dossiers[index++], nom_depart);
 
-    if (rep == NULL) return;
+    while (index > 0) {
+        char courant[1024];
+        strcpy(courant, dossiers[--index]); // On récupère le dernier dossier ajouté
 
-    while ((lecture = readdir(rep)) != NULL) {
-        // On ignore les répertoires "." et ".."
-        if (strcmp(lecture->d_name, ".") == 0 || strcmp(lecture->d_name, "..") == 0) {
-            continue;
+        DIR *rep = opendir(courant);
+        if (rep == NULL) continue;
+
+        struct dirent *lecture;
+        while ((lecture = readdir(rep)) != NULL) {
+            if (strcmp(lecture->d_name, ".") == 0 || strcmp(lecture->d_name, "..") == 0)
+                continue;
+
+            printf("%s/%s\n", courant, lecture->d_name);
+
+            // Si c'est un dossier, on l'ajoute à notre liste de tâches
+            if (lecture->d_type == DT_DIR) {
+                sprintf(dossiers[index++], "%s/%s", courant, lecture->d_name);
+            }
         }
-
-        printf("%s/%s\n", nom_repertoire, lecture->d_name);
-
-        // Si c'est un répertoire (type DT_DIR), on appelle la fonction récursivement
-        if (lecture->d_type == DT_DIR) {
-            sprintf(chemin, "%s/%s", nom_repertoire, lecture->d_name);
-            lire_dossier_recursif(chemin);
-        }
+        closedir(rep);
     }
-    closedir(rep);
 }
