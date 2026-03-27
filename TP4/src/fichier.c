@@ -33,3 +33,10 @@ void ecrire_dans_fichier(const char *nom_de_fichier, const char *message) {
     fclose(f);
     printf("Message enregistre avec succes dans %s.\n", nom_de_fichier);
 }
+
+void ajouter_dans_fichier(const char *nom_de_fichier, const char *message) {
+    FILE *f = fopen(nom_de_fichier, "a");
+    if (f == NULL) return;
+    fprintf(f, "%s\n", message);
+    fclose(f);
+}
