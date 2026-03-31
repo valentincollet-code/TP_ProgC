@@ -1,8 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2021 John Samuel
- *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
  */
 
 #include <sys/types.h>
@@ -14,95 +12,100 @@
 
 #include "bmp.h"
 
-/*
- * fonction d'analyse des couleurs dans l'image du format BMP
- * Il faut un argument : le chemin du fichier image
- */
 couleur_compteur *analyse_bmp_image(char *nom_de_fichier)
 {
-
   couleur_compteur *cc = NULL;
 
-  // l'ouverture du fichier pour la lecture
+  // 1. Ouverture du fichier
   int fd = open(nom_de_fichier, O_RDONLY);
-  printf("%s", nom_de_fichier);
   if (fd < 0)
   {
     perror("Erreur: open");
-    return 0;
+    return NULL;
   }
 
   bmp_header bheader;
   bmp_info_header binfo_header;
 
-  // la lecture de l'en-tête du fichier pour en connaître la taille et le type
+  // 2. Lecture du premier en-tête (Général)
   ssize_t compte = read(fd, &bheader, sizeof(bheader));
-  if (compte < 0)
+  if (compte <= 0)
   {
-    perror("Erreur: read");
-    return (NULL);
+    perror("Erreur: read header");
+    close(fd);
+    return NULL;
   }
 
-  // Vérifier l'en-tête pour voir si le fichier est une image de format BMP
+  // 3. Vérification du format BMP (Signature 'BM')
   if (bheader.type != 0x4D42)
   {
-    return (NULL);
+    fprintf(stderr, "Erreur: Ce n'est pas un fichier BMP valide.\n");
+    close(fd);
+    return NULL;
   }
 
-  /* Obtenir l'information indiquant si l'image utilise 3 (RGB) ou 4 (RGBA)
-   * octets pour stocker une seule couleur
-   */
+  // 4. Lecture du second en-tête (Infos techniques)
   compte = read(fd, &binfo_header, sizeof(binfo_header));
-  if (compte < 0)
+  if (compte <= 0)
   {
-    perror("Erreur: read");
-    return (NULL);
+    perror("Erreur: read info header");
+    close(fd);
+    return NULL;
   }
 
-  // Se positionner correctement pour commencer à lire les couleurs
-  off_t offset = lseek(fd, bheader.offset, SEEK_SET);
-  if (offset != bheader.offset)
+  // --- BLOC DE DEBUG (Placé au bon moment !) ---
+  printf("\n--- DEBUG BMP ---\n");
+  printf("Fichier: %s\n", nom_de_fichier);
+  printf("Offset pixels: %u\n", bheader.offset);
+  printf("Largeur: %u\n", binfo_header.largeur);
+  printf("Hauteur: %d\n", (int)binfo_header.hauteur);
+  printf("Bits par pixel: %u\n", binfo_header.compte_bit);
+  printf("----------------\n");
+
+  // 5. Se positionner au début des données pixels
+  if (lseek(fd, bheader.offset, SEEK_SET) < 0)
   {
     perror("Erreur: lseek");
-    return (NULL);
+    close(fd);
+    return NULL;
   }
 
-  // Lecture des couleurs de 4 octets
+  // 6. Lecture des pixels selon le format (24 ou 32 bits)
   if (binfo_header.compte_bit == 32)
   {
-    couleur32 *c32 = calloc(binfo_header.taille_image / 4, 4);
-    read(fd, c32, binfo_header.taille_image);
-    if (compte < 0)
-    {
-      perror("Erreur: read");
-      return (NULL);
-    }
+    int nb_pixels = binfo_header.largeur * binfo_header.hauteur;
+    couleur32 *c32 = calloc(nb_pixels, sizeof(couleur32));
+    read(fd, c32, nb_pixels * sizeof(couleur32));
 
     couleur c;
     c.compte_bit = BITS32;
     c.c.c32 = c32;
-    cc = compte_couleur(&c, binfo_header.taille_image / 4);
+    cc = compte_couleur(&c, nb_pixels);
     trier_couleur_compteur(cc);
   }
   else if (binfo_header.compte_bit == 24)
   {
-    // Lecture des couleurs de 3 octets
-    couleur24 *c24 = calloc(binfo_header.taille_image / 3, 3);
-    read(fd, c24, binfo_header.taille_image);
-    if (compte < 0)
-    {
-      perror("Erreur: read");
-      return (NULL);
-    }
+    int nb_pixels = binfo_header.largeur * binfo_header.hauteur;
+    if (nb_pixels < 0) nb_pixels = -nb_pixels; // Gestion hauteur négative
+
+    couleur24 *c24 = calloc(nb_pixels, sizeof(couleur24));
+
+    // On lit les pixels.
+    // Attention: cette méthode ignore le padding, ce qui est OK pour 800px de large
+    ssize_t lus = read(fd, c24, nb_pixels * sizeof(couleur24));
+
+    printf("DEBUG: Pixels attendus: %d, Octets lus: %zd\n", nb_pixels, lus);
+
+    // Regardons la couleur du tout premier pixel lu
+    printf("DEBUG: Premier pixel: R=%02x G=%02x B=%02x\n", c24[0].rouge, c24[0].vert, c24[0].bleu);
 
     couleur c;
     c.compte_bit = BITS24;
     c.c.c24 = c24;
-    cc = compte_couleur(&c, binfo_header.taille_image / 3);
+    cc = compte_couleur(&c, nb_pixels);
     trier_couleur_compteur(cc);
   }
 
   close(fd);
-
   return cc;
 }
