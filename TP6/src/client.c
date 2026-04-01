@@ -6,83 +6,90 @@
 #include <unistd.h>
 
 #include "client.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include "bmp.h"
 
-/**
- * EXERCICE 5.5 : Fonction spécifique pour envoyer un calcul
- */
-void envoi_operateur_numeros(int client_socket_fd, char operateur, int n1, int n2) {
-    char message[1024];
-    // On formate le message comme attendu par le serveur : "calcule : <op> <n1> <n2>"
-    sprintf(message, "calcule : %c %d %d", operateur, n1, n2);
-
-    printf("[CLIENT] Envoi du calcul au serveur...\n");
-    write(client_socket_fd, message, strlen(message));
+void erreur(const char *msg) {
+    perror(msg);
+    exit(0);
 }
 
-int main() {
-    int client_socket_fd;
-    struct sockaddr_in server_addr;
-    char buffer_saisie[1024];
-    char buffer_reponse[1024];
+int main(int argc, char *argv[]) {
+    int sockfd, portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
+    char buffer[2048]; // Buffer assez grand pour les couleurs
 
-    // 1. Création de la socket
-    client_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (client_socket_fd < 0) {
-        perror("Erreur socket");
-        return EXIT_FAILURE;
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s fichier.bmp\n", argv[0]);
+        exit(0);
     }
 
-    // 2. Configuration de l'adresse du serveur
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    // 3. Connexion au serveur
-    if (connect(client_socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-        perror("Erreur connexion");
-        return EXIT_FAILURE;
+    // 1. Demander le nombre de couleurs à l'utilisateur
+    int nb_couleurs;
+    printf("Combien de couleurs voulez-vous analyser (max 30) ? ");
+    if (scanf("%d", &nb_couleurs) != 1 || nb_couleurs <= 0 || nb_couleurs > 30) {
+        printf("Nombre invalide, utilisation par défaut : 10\n");
+        nb_couleurs = 10;
     }
 
-    printf("Connecté au serveur ! (Tapez vos messages ou 'calcule : + 10 20')\n");
-
-    while (1) {
-        printf("> ");
-        fflush(stdout);
-
-        // Lecture de la saisie utilisateur
-        if (fgets(buffer_saisie, sizeof(buffer_saisie), stdin) == NULL) break;
-        buffer_saisie[strcspn(buffer_saisie, "\n")] = 0; // Nettoyage du \n
-
-        // --- LOGIQUE EXERCICE 5.5 ---
-        // Si l'utilisateur tape "calcule : + 10 20"
-        if (strncmp(buffer_saisie, "calcule :", 9) == 0) {
-            char op;
-            int v1, v2;
-            // On extrait les valeurs pour appeler la fonction demandée
-            if (sscanf(buffer_saisie + 10, " %c %d %d", &op, &v1, &v2) == 3) {
-                envoi_operateur_numeros(client_socket_fd, op, v1, v2);
-            } else {
-                printf("Format incorrect. Utilisez : calcule : <op> <n1> <n2>\n");
-                continue;
-            }
-        }
-        // Sinon, envoi normal (Exercice 5.4)
-        else {
-            write(client_socket_fd, buffer_saisie, strlen(buffer_saisie));
-        }
-
-        // 4. Attente de la réponse du serveur
-        memset(buffer_reponse, 0, sizeof(buffer_reponse));
-        int n = read(client_socket_fd, buffer_reponse, sizeof(buffer_reponse) - 1);
-        if (n > 0) {
-            printf("Réponse du serveur : %s\n", buffer_reponse);
-        } else {
-            printf("Serveur déconnecté.\n");
-            break;
-        }
+    // 2. Analyse de l'image (via bmp.c)
+    couleur_compteur *cc = analyse_bmp_image(argv[1]);
+    if (cc == NULL) {
+        fprintf(stderr, "Erreur lors de l'analyse de l'image.\n");
+        exit(1);
     }
 
-    close(client_socket_fd);
+    // 3. Connexion au serveur (Port 5000 par défaut ici)
+    portno = 5000;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) erreur("ERREUR ouverture socket");
+
+    server = gethostbyname("localhost");
+    if (server == NULL) erreur("ERREUR, hôte inexistant");
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
+
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        erreur("ERREUR connexion");
+
+    // 4. ENVOI DU NOMBRE DE COULEURS
+    // On envoie l'entier brut au serveur
+    n = write(sockfd, &nb_couleurs, sizeof(int));
+    if (n < 0) erreur("ERREUR envoi nombre couleurs");
+
+    // 5. Préparation de la chaîne de couleurs (ex: "10,#ffffff,#000000...")
+    // On commence par mettre le nombre dans la chaîne
+    sprintf(buffer, "%d", nb_couleurs);
+
+    // On ajoute chaque couleur trouvée
+    for (int i = 0; i < nb_couleurs; i++) {
+        char temp[9];
+        // On transforme les composantes R,G,B en Hexadécimal
+        // Correction pour accéder aux membres R, G, B correctement
+        sprintf(temp, ",#%02x%02x%02x",
+                cc->cc.cc24[i].c.rouge,
+                cc->cc.cc24[i].c.vert,
+                cc->cc.cc24[i].c.bleu);
+        strcat(buffer, temp);
+    }
+
+    // 6. ENVOI DE LA CHAÎNE DE COULEURS
+    n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0) erreur("ERREUR envoi chaine couleurs");
+
+    printf("Données envoyées avec succès (%d couleurs).\n", nb_couleurs);
+
+    close(sockfd);
     return 0;
 }

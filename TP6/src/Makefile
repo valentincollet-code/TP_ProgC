@@ -1,5 +1,5 @@
-COBJS ?= client.o bmp.o couleur.o
-SOBJS ?= serveur.o 
+CLIENT_OBJS = client.o bmp.o couleur.o
+SERVER_OBJS = serveur.o couleur.o bmp.o
 
 .SUFFIXES: .c .o
 
@@ -8,12 +8,14 @@ CLIENT = client
 
 all: $(SERVER) $(CLIENT)
 
-$(SERVER): $(SOBJS)
-	gcc -o $(SERVER) $(SOBJS) -lm
+$(SERVER): $(SERVER_OBJS)
+	gcc -Wall -Werror -ggdb3 -o $(SERVER) $(SERVER_OBJS) -lm
 
-$(CLIENT): $(COBJS)
-	gcc -o $(CLIENT) $(COBJS)
+$(CLIENT): $(CLIENT_OBJS)
+	gcc -Wall -Werror -ggdb3 -o $(CLIENT) $(CLIENT_OBJS)
 
-.c.o: 
-	gcc -Wall -Werror -ggdb3 -c $*.c
+.c.o:
+	gcc -Wall -Werror -ggdb3 -c $< -o $@
 
+clean:
+	rm -f *.o $(SERVER) $(CLIENT) pie_chart.svg

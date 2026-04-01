@@ -1,234 +1,73 @@
-/*
- * SPDX-FileCopyrightText: 2021 John Samuel
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- */
-
-#include <math.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
-#include "serveur.h"
-int socketfd;
 
-int visualize_plot()
-{
-  const char *browser = "firefox";
+// Le prototype :
+void creation_graphique_svg(char *couleurs, int nb_couleurs);
 
-  char command[256];
-  snprintf(command, sizeof(command), "%s %s", browser, svg_file_path);
-
-  int result = system(command);
-
-  if (result == 0)
-  {
-    printf("SVG file opened in %s.\n", browser);
-  }
-  else
-  {
-    printf("Failed to open the SVG file.\n");
-  }
-
-  return 0;
+void erreur(const char *msg) {
+    perror(msg);
+    exit(1);
 }
 
-double degreesToRadians(double degrees)
-{
-  return degrees * M_PI / 180.0;
-}
+int main(int argc, char *argv[]) {
+    int sockfd, newsockfd, portno;
+    socklen_t clilen;
+    char buffer[2048];
+    struct sockaddr_in serv_addr, cli_addr;
+    int n;
 
-int plot(char *data)
-{
-  int i;
-  char *saveptr = NULL;
-  char *str = data;
-  char *token = strtok_r(str, ",", &saveptr);
-  const int num_colors = 10;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) erreur("ERREUR ouverture socket");
 
-  double angles[num_colors];
-  memset(angles, 0, sizeof(angles));
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    portno = 5000;
 
-  FILE *svg_file = fopen(svg_file_path, "w");
-  if (svg_file == NULL)
-  {
-    perror("Error opening file");
-    return 1;
-  }
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(portno);
 
-  fprintf(svg_file, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
-  fprintf(svg_file, "<svg width=\"400\" height=\"400\" xmlns=\"http://www.w3.org/2000/svg\">\n");
-  fprintf(svg_file, "  <rect width=\"100%%\" height=\"100%%\" fill=\"#ffffff\" />\n");
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        erreur("ERREUR sur le bind");
 
-  double center_x = 200.0;
-  double center_y = 200.0;
-  double radius = 150.0;
+    listen(sockfd, 5);
+    clilen = sizeof(cli_addr);
 
-  double start_angle = -90.0;
+    printf("Serveur en attente sur le port %d...\n", portno);
 
-  str = NULL;
-  i = 0;
-  while (1)
-  {
-    token = strtok_r(str, ",", &saveptr);
-    if (token == NULL)
-    {
-      break;
-    }
-    str = NULL;
-    angles[i] = 360.0 / num_colors;
+    while (1) {
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if (newsockfd < 0) erreur("ERREUR sur accept");
 
-    double end_angle = start_angle + angles[i];
+        // 1. RÉCEPTION DU NOMBRE DE COULEURS (L'entier envoyé par le client)
+        int nb_couleurs_attendues = 0;
+        n = read(newsockfd, &nb_couleurs_attendues, sizeof(int));
+        if (n < 0) erreur("ERREUR lecture du nombre de couleurs");
 
-    double start_angle_rad = degreesToRadians(start_angle);
-    double end_angle_rad = degreesToRadians(end_angle);
+        printf("Le client demande l'analyse de %d couleurs.\n", nb_couleurs_attendues);
 
-    double x1 = center_x + radius * cos(start_angle_rad);
-    double y1 = center_y + radius * sin(start_angle_rad);
-    double x2 = center_x + radius * cos(end_angle_rad);
-    double y2 = center_y + radius * sin(end_angle_rad);
+        // 2. RÉCEPTION DE LA CHAÎNE (ex: "10,#ffffff...")
+        bzero(buffer, 2048);
+        n = read(newsockfd, buffer, 2047);
+        if (n < 0) erreur("ERREUR lecture socket");
 
-    fprintf(svg_file, "  <path d=\"M%.2f,%.2f A%.2f,%.2f 0 0,1 %.2f,%.2f L%.2f,%.2f Z\" fill=\"%s\" />\n",
-            x1, y1, radius, radius, x2, y2, center_x, center_y, token);
+        printf("Message recu: %s\n", buffer);
 
-    start_angle = end_angle;
-    i++;
-  }
+        // 3. GÉNÉRATION DU GRAPHIQUE
+        // On passe le nombre dynamique reçu à la fonction de création du SVG
+        creation_graphique_svg(buffer, nb_couleurs_attendues);
 
-  fprintf(svg_file, "</svg>\n");
+        // Tentative d'ouverture (ne marchera pas sur WSL mais crée le fichier)
+        system("firefox pie_chart.svg &");
 
-  fclose(svg_file);
-
-  visualize_plot();
-  return 0;
-}
-
-/* renvoyer un message (*data) au client (client_socket_fd)
- */
-int renvoie_message(int client_socket_fd, char *data)
-{
-  int data_size = write(client_socket_fd, (void *)data, strlen(data));
-
-  if (data_size < 0)
-  {
-    perror("erreur ecriture");
-    return (EXIT_FAILURE);
-  }
-  return (EXIT_SUCCESS);
-}
-
-/* accepter la nouvelle connection d'un client et lire les données
- * envoyées par le client. En suite, le serveur envoie un message
- * en retour
- */
-int recois_envoie_message(int client_socket_fd, char data[1024])
-{
-  /*
-   * extraire le code des données envoyées par le client.
-   * Les données envoyées par le client peuvent commencer par le mot "message :" ou un autre mot.
-   */
-  printf("Message recu: %s\n", data);
-  char code[10];
-  sscanf(data, "%s", code);
-
-  // Si le message commence par le mot: 'message:'
-  if (strcmp(code, "message:") == 0)
-  {
-    renvoie_message(client_socket_fd, data);
-  }
-  else
-  {
-    plot(data);
-  }
-
-  return (EXIT_SUCCESS);
-}
-
-// Fonction de gestion du signal Ctrl+C
-void gestionnaire_ctrl_c(int signal)
-{
-  printf("\nSignal Ctrl+C capturé. Sortie du programme.\n");
-  // fermer le socket
-  close(socketfd);
-  exit(0); // Quitter proprement le programme.
-}
-
-int main()
-{
-  int bind_status;
-
-  struct sockaddr_in server_addr;
-
-  /*
-   * Creation d'une socket
-   */
-  socketfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (socketfd < 0)
-  {
-    perror("Unable to open a socket");
-    return -1;
-  }
-
-  int option = 1;
-  setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
-
-  // détails du serveur (adresse et port)
-  memset(&server_addr, 0, sizeof(server_addr));
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(PORT);
-  server_addr.sin_addr.s_addr = INADDR_ANY;
-
-  // Relier l'adresse à la socket
-  bind_status = bind(socketfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-  if (bind_status < 0)
-  {
-    perror("bind");
-    return (EXIT_FAILURE);
-  }
-
-  // Enregistrez la fonction de gestion du signal Ctrl+C
-  signal(SIGINT, gestionnaire_ctrl_c);
-
-  // Écouter les messages envoyés par le client en boucle infinie
-  while (1)
-  {
-    // Écouter les messages envoyés par le client
-    listen(socketfd, 10);
-
-    // Lire et répondre au client
-    struct sockaddr_in client_addr;
-    char data[1024];
-
-    unsigned int client_addr_len = sizeof(client_addr);
-
-    // nouvelle connection de client
-    int client_socket_fd = accept(socketfd, (struct sockaddr *)&client_addr, &client_addr_len);
-    if (client_socket_fd < 0)
-    {
-      perror("accept");
-      return (EXIT_FAILURE);
+        close(newsockfd);
     }
 
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    // lecture de données envoyées par un client
-    int data_size = read(client_socket_fd, (void *)data, sizeof(data));
-
-    if (data_size < 0)
-    {
-      perror("erreur lecture");
-      return (EXIT_FAILURE);
-    }
-
-    recois_envoie_message(client_socket_fd, data);
-  }
-
-  return 0;
+    close(sockfd);
+    return 0;
 }
