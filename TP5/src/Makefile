@@ -21,3 +21,5 @@ $(CLIENT): $(COBJS)
 .c.o: 
 	$(CC) -c $*.c
 
+clean:
+	rm -f $(SERVER) $(CLIENT) *.o

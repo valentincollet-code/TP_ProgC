@@ -1,157 +1,88 @@
-/*
- * SPDX-FileCopyrightText: 2021 John Samuel
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
- *
- */
-
-#include <string.h>
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <string.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <unistd.h>
 
 #include "client.h"
-#include "bmp.h"
 
-/*
- * Fonction d'envoi et de réception de messages
- * Il faut un argument : l'identifiant de la socket
+/**
+ * EXERCICE 5.5 : Fonction spécifique pour envoyer un calcul
  */
+void envoi_operateur_numeros(int client_socket_fd, char operateur, int n1, int n2) {
+    char message[1024];
+    // On formate le message comme attendu par le serveur : "calcule : <op> <n1> <n2>"
+    sprintf(message, "calcule : %c %d %d", operateur, n1, n2);
 
-int envoie_recois_message(int socketfd)
-{
-
-  char data[1024];
-  // la réinitialisation de l'ensemble des données
-  memset(data, 0, sizeof(data));
-
-  // Demandez à l'utilisateur d'entrer un message
-  char message[1024];
-  printf("Votre message (max 1000 caracteres): ");
-  fgets(message, sizeof(message), stdin);
-  strcpy(data, "message: ");
-  strcat(data, message);
-
-  int write_status = write(socketfd, data, strlen(data));
-  if (write_status < 0)
-  {
-    perror("erreur ecriture");
-    exit(EXIT_FAILURE);
-  }
-
-  // la réinitialisation de l'ensemble des données
-  memset(data, 0, sizeof(data));
-
-  // lire les données de la socket
-  int read_status = read(socketfd, data, sizeof(data));
-  if (read_status < 0)
-  {
-    perror("erreur lecture");
-    return -1;
-  }
-
-  printf("Message recu: %s\n", data);
-
-  return 0;
+    printf("[CLIENT] Envoi du calcul au serveur...\n");
+    write(client_socket_fd, message, strlen(message));
 }
 
-void analyse(char *pathname, char *data)
-{
-  // compte de couleurs
-  couleur_compteur *cc = analyse_bmp_image(pathname);
+int main() {
+    int client_socket_fd;
+    struct sockaddr_in server_addr;
+    char buffer_saisie[1024];
+    char buffer_reponse[1024];
 
-  int count;
-  strcpy(data, "couleurs: ");
-  char temp_string[10] = "10,";
-  if (cc->size < 10)
-  {
-    sprintf(temp_string, "%d,", cc->size);
-  }
-  strcat(data, temp_string);
-
-  // choisir 10 couleurs
-  for (count = 1; count < 11 && cc->size - count > 0; count++)
-  {
-    if (cc->compte_bit == BITS32)
-    {
-      sprintf(temp_string, "#%02x%02x%02x,", cc->cc.cc24[cc->size - count].c.rouge, cc->cc.cc32[cc->size - count].c.vert, cc->cc.cc32[cc->size - count].c.bleu);
+    // 1. Création de la socket
+    client_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (client_socket_fd < 0) {
+        perror("Erreur socket");
+        return EXIT_FAILURE;
     }
-    if (cc->compte_bit == BITS24)
-    {
-      sprintf(temp_string, "#%02x%02x%02x,", cc->cc.cc32[cc->size - count].c.rouge, cc->cc.cc32[cc->size - count].c.vert, cc->cc.cc32[cc->size - count].c.bleu);
+
+    // 2. Configuration de l'adresse du serveur
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    // 3. Connexion au serveur
+    if (connect(client_socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+        perror("Erreur connexion");
+        return EXIT_FAILURE;
     }
-    strcat(data, temp_string);
-  }
 
-  // enlever le dernier virgule
-  data[strlen(data) - 1] = '\0';
-}
+    printf("Connecté au serveur ! (Tapez vos messages ou 'calcule : + 10 20')\n");
 
-int envoie_couleurs(int socketfd, char *pathname)
-{
-  char data[1024];
-  memset(data, 0, sizeof(data));
-  analyse(pathname, data);
+    while (1) {
+        printf("> ");
+        fflush(stdout);
 
-  int write_status = write(socketfd, data, strlen(data));
-  if (write_status < 0)
-  {
-    perror("erreur ecriture");
-    exit(EXIT_FAILURE);
-  }
+        // Lecture de la saisie utilisateur
+        if (fgets(buffer_saisie, sizeof(buffer_saisie), stdin) == NULL) break;
+        buffer_saisie[strcspn(buffer_saisie, "\n")] = 0; // Nettoyage du \n
 
-  return 0;
-}
+        // --- LOGIQUE EXERCICE 5.5 ---
+        // Si l'utilisateur tape "calcule : + 10 20"
+        if (strncmp(buffer_saisie, "calcule :", 9) == 0) {
+            char op;
+            int v1, v2;
+            // On extrait les valeurs pour appeler la fonction demandée
+            if (sscanf(buffer_saisie + 10, " %c %d %d", &op, &v1, &v2) == 3) {
+                envoi_operateur_numeros(client_socket_fd, op, v1, v2);
+            } else {
+                printf("Format incorrect. Utilisez : calcule : <op> <n1> <n2>\n");
+                continue;
+            }
+        }
+        // Sinon, envoi normal (Exercice 5.4)
+        else {
+            write(client_socket_fd, buffer_saisie, strlen(buffer_saisie));
+        }
 
-int main(int argc, char **argv)
-{
-  int socketfd;
+        // 4. Attente de la réponse du serveur
+        memset(buffer_reponse, 0, sizeof(buffer_reponse));
+        int n = read(client_socket_fd, buffer_reponse, sizeof(buffer_reponse) - 1);
+        if (n > 0) {
+            printf("Réponse du serveur : %s\n", buffer_reponse);
+        } else {
+            printf("Serveur déconnecté.\n");
+            break;
+        }
+    }
 
-  struct sockaddr_in server_addr;
-
-  if (argc < 2)
-  {
-    printf("usage: ./client chemin_bmp_image\n");
-    return (EXIT_FAILURE);
-  }
-
-  /*
-   * Creation d'une socket
-   */
-  socketfd = socket(AF_INET, SOCK_STREAM, 0);
-  if (socketfd < 0)
-  {
-    perror("socket");
-    exit(EXIT_FAILURE);
-  }
-
-  // détails du serveur (adresse et port)
-  memset(&server_addr, 0, sizeof(server_addr));
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = htons(PORT);
-  server_addr.sin_addr.s_addr = INADDR_ANY;
-
-  // demande de connection au serveur
-  int connect_status = connect(socketfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-  if (connect_status < 0)
-  {
-    perror("connection serveur");
-    exit(EXIT_FAILURE);
-  }
-  if (argc != 2)
-  {
-    // envoyer et recevoir un message
-    envoie_recois_message(socketfd);
-  }
-  else
-  {
-    // envoyer et recevoir les couleurs prédominantes
-    // d'une image au format BMP (argv[1])
-    envoie_couleurs(socketfd, argv[1]);
-  }
-
-  close(socketfd);
+    close(client_socket_fd);
+    return 0;
 }
