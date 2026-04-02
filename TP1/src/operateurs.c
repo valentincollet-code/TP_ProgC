@@ -2,8 +2,8 @@
 
 int main() {
     // Initialisation des variables (on peut modifier les variables)
-    int a = 39;
-    int b = 435;
+    int a = 16;
+    int b = 3;
 
     printf("Valeurs : a = %d, b = %d\n\n", a, b);
 
