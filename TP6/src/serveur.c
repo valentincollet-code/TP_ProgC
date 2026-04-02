@@ -5,9 +5,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "cJSON.h" // Indispensable !
 
-
-// Le prototype :
+// Le prototype (on garde ta fonction existante)
 void creation_graphique_svg(char *couleurs, int nb_couleurs);
 
 void erreur(const char *msg) {
@@ -18,12 +18,16 @@ void erreur(const char *msg) {
 int main(int argc, char *argv[]) {
     int sockfd, newsockfd, portno;
     socklen_t clilen;
-    char buffer[2048];
+    char buffer[4096]; // Augmenté un peu pour être large avec le JSON
     struct sockaddr_in serv_addr, cli_addr;
     int n;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) erreur("ERREUR ouverture socket");
+
+    // Option pour réutiliser le port immédiatement après un arrêt/relance
+    int opt = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
     portno = 5000;
@@ -38,33 +42,67 @@ int main(int argc, char *argv[]) {
     listen(sockfd, 5);
     clilen = sizeof(cli_addr);
 
-    printf("Serveur en attente sur le port %d...\n", portno);
+    printf("Serveur JSON en attente sur le port %d...\n", portno);
 
     while (1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if (newsockfd < 0) erreur("ERREUR sur accept");
 
-        // 1. RÉCEPTION DU NOMBRE DE COULEURS (L'entier envoyé par le client)
-        int nb_couleurs_attendues = 0;
-        n = read(newsockfd, &nb_couleurs_attendues, sizeof(int));
-        if (n < 0) erreur("ERREUR lecture du nombre de couleurs");
+        // --- MODIFICATION EXERCICE 6.3 : RÉCEPTION ET ANALYSE JSON ---
 
-        printf("Le client demande l'analyse de %d couleurs.\n", nb_couleurs_attendues);
-
-        // 2. RÉCEPTION DE LA CHAÎNE (ex: "10,#ffffff...")
-        bzero(buffer, 2048);
-        n = read(newsockfd, buffer, 2047);
+        bzero(buffer, 4096);
+        n = read(newsockfd, buffer, 4095);
         if (n < 0) erreur("ERREUR lecture socket");
 
-        printf("Message recu: %s\n", buffer);
+        // 1. Parser la chaîne reçue pour en faire un objet JSON
+        cJSON *json = cJSON_Parse(buffer);
+        if (json == NULL) {
+            printf("Erreur : Message reçu n'est pas un JSON valide.\n");
+            close(newsockfd);
+            continue;
+        }
 
-        // 3. GÉNÉRATION DU GRAPHIQUE
-        // On passe le nombre dynamique reçu à la fonction de création du SVG
-        creation_graphique_svg(buffer, nb_couleurs_attendues);
+        // 2. Extraire le code d'opération
+        cJSON *code = cJSON_GetObjectItemCaseSensitive(json, "code");
+        if (cJSON_IsString(code) && (strcmp(code->valuestring, "couleurs") == 0)) {
 
-        // Tentative d'ouverture (ne marchera pas sur WSL mais crée le fichier)
-        system("firefox pie_chart.svg &");
+            // 3. Extraire le tableau de valeurs
+            cJSON *valeurs = cJSON_GetObjectItemCaseSensitive(json, "valeurs");
+            int nb_couleurs = cJSON_GetArraySize(valeurs);
+            printf("Reçu : %d couleurs via JSON.\n", nb_couleurs);
 
+            // 4. Reconstruire la chaîne pour ton ancienne fonction SVG
+            // (Format attendu par ta fonction : "nb,#hex,#hex...")
+            char chaine_svg[4096];
+            sprintf(chaine_svg, "%d", nb_couleurs);
+
+            for (int i = 0; i < nb_couleurs; i++) {
+                cJSON *item = cJSON_GetArrayItem(valeurs, i);
+                strcat(chaine_svg, ",");
+                strcat(chaine_svg, item->valuestring);
+            }
+
+            // 5. Génération du graphique
+            creation_graphique_svg(chaine_svg, nb_couleurs);
+            printf("Graphique SVG mis à jour.\n");
+
+            // 6. Répondre au client (en JSON comme demandé par l'exercice)
+            cJSON *reponse = cJSON_CreateObject();
+            cJSON_AddStringToObject(reponse, "statut", "OK");
+            cJSON_AddNumberToObject(reponse, "message", nb_couleurs);
+            char *reponse_str = cJSON_PrintUnformatted(reponse);
+
+            write(newsockfd, reponse_str, strlen(reponse_str));
+
+            free(reponse_str);
+            cJSON_Delete(reponse);
+
+            // Tentative d'ouverture
+            system("firefox pie_chart.svg &");
+        }
+
+        // Nettoyage de l'objet JSON de réception
+        cJSON_Delete(json);
         close(newsockfd);
     }
 

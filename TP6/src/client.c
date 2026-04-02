@@ -4,17 +4,12 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-#include "client.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
+#include "client.h"
 #include "bmp.h"
+#include "cJSON.h" // N'oublie pas d'inclure cJSON
 
 void erreur(const char *msg) {
     perror(msg);
@@ -25,14 +20,13 @@ int main(int argc, char *argv[]) {
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-    char buffer[2048]; // Buffer assez grand pour les couleurs
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s fichier.bmp\n", argv[0]);
         exit(0);
     }
 
-    // 1. Demander le nombre de couleurs à l'utilisateur
+    // 1. Demander le nombre de couleurs
     int nb_couleurs;
     printf("Combien de couleurs voulez-vous analyser (max 30) ? ");
     if (scanf("%d", &nb_couleurs) != 1 || nb_couleurs <= 0 || nb_couleurs > 30) {
@@ -40,14 +34,14 @@ int main(int argc, char *argv[]) {
         nb_couleurs = 10;
     }
 
-    // 2. Analyse de l'image (via bmp.c)
+    // 2. Analyse de l'image
     couleur_compteur *cc = analyse_bmp_image(argv[1]);
     if (cc == NULL) {
         fprintf(stderr, "Erreur lors de l'analyse de l'image.\n");
         exit(1);
     }
 
-    // 3. Connexion au serveur (Port 5000 par défaut ici)
+    // 3. Connexion au serveur
     portno = 5000;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) erreur("ERREUR ouverture socket");
@@ -63,33 +57,42 @@ int main(int argc, char *argv[]) {
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
         erreur("ERREUR connexion");
 
-    // 4. ENVOI DU NOMBRE DE COULEURS
-    // On envoie l'entier brut au serveur
-    n = write(sockfd, &nb_couleurs, sizeof(int));
-    if (n < 0) erreur("ERREUR envoi nombre couleurs");
+    // --- MODIFICATION EXERCICE 6.3 : CONSTRUCTION DU JSON ---
 
-    // 5. Préparation de la chaîne de couleurs (ex: "10,#ffffff,#000000...")
-    // On commence par mettre le nombre dans la chaîne
-    sprintf(buffer, "%d", nb_couleurs);
+    // Création de l'objet racine { }
+    cJSON *root = cJSON_CreateObject();
 
-    // On ajoute chaque couleur trouvée
+    // Ajout de "code": "couleurs"
+    cJSON_AddStringToObject(root, "code", "couleurs");
+
+    // Création du tableau "valeurs": [ ]
+    cJSON *valeurs = cJSON_CreateArray();
     for (int i = 0; i < nb_couleurs; i++) {
-        char temp[9];
-        // On transforme les composantes R,G,B en Hexadécimal
-        // Correction pour accéder aux membres R, G, B correctement
-        sprintf(temp, ",#%02x%02x%02x",
+        char hex_color[8];
+        sprintf(hex_color, "#%02x%02x%02x",
                 cc->cc.cc24[i].c.rouge,
                 cc->cc.cc24[i].c.vert,
                 cc->cc.cc24[i].c.bleu);
-        strcat(buffer, temp);
+
+        // On ajoute la chaîne hexadécimale au tableau
+        cJSON_AddItemToArray(valeurs, cJSON_CreateString(hex_color));
     }
+    cJSON_AddItemToObject(root, "valeurs", valeurs);
 
-    // 6. ENVOI DE LA CHAÎNE DE COULEURS
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) erreur("ERREUR envoi chaine couleurs");
+    // Conversion de l'objet JSON en chaîne de caractères (string)
+    char *json_string = cJSON_PrintUnformatted(root);
 
-    printf("Données envoyées avec succès (%d couleurs).\n", nb_couleurs);
+    // 4. ENVOI DU MESSAGE JSON
+    // On envoie maintenant une seule chaîne de caractères contenant tout le JSON
+    n = write(sockfd, json_string, strlen(json_string));
+    if (n < 0) erreur("ERREUR envoi JSON");
 
+    printf("Données JSON envoyées avec succès :\n%s\n", json_string);
+
+    // 5. NETTOYAGE
+    free(json_string);  // Libère la chaîne générée par cJSON_Print
+    cJSON_Delete(root); // Libère la structure de l'objet JSON
     close(sockfd);
+
     return 0;
 }
