@@ -20,7 +20,7 @@ int main() {
     printf("long long int : %lu\n", sizeof(long long int));
     printf("unsigned long long int : %lu\n", sizeof(unsigned long long int));
 
-    // Types flottants (pas de version unsigned/signed)
+    // Types flottants (pas de version signées/non signées)
     printf("\n--- Types flottants ---\n");
     printf("float : %lu\n", sizeof(float));
     printf("double : %lu\n", sizeof(double));
