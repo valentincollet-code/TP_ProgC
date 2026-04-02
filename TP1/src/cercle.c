@@ -5,8 +5,8 @@ int main() {
     // Déclaration des variables
     double rayon, aire, perimetre;
 
-    // Initialisation du rayon (tu peux changer cette valeur)
-    rayon = 50;
+    // Initialisation du rayon (rayon modifiable)
+    rayon = 200;
 
     // Calculs
     // On utilise M_PI défini dans la bibliothèque math.h
