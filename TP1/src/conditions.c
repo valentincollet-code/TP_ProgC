@@ -25,7 +25,7 @@ int main() {
         }
     }
 
-    // 5. Affichage de la somme finale
+    // 5. On affiche de la somme finale
     printf("La somme finale est : %d\n", somme);
 
     return 0;
