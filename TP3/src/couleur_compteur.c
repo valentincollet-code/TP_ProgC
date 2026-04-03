@@ -7,7 +7,7 @@ typedef struct {
     unsigned char r, g, b, a;
 } Couleur;
 
-// 2. Structure pour stocker une couleur et son nombre d'apparitions
+// 2. Structure pour stocker une couleur et son nombre d'apparitions dans le tableau
 typedef struct {
     Couleur couleur;
     int compteur;
