@@ -26,7 +26,7 @@ int main() {
         }
     }
 
-    // 4. Affichage du résultat
+    // 4. Affichage du résultat (présent / absent)
     if (trouve) {
         printf("Résultat : entier présent\n");
     } else {
