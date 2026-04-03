@@ -5,7 +5,7 @@ int main() {
     int recherche, trouve = 0;
     int debut = 0, fin = 99, milieu;
 
-    // 1. On remplit le tableau avec des nombres triés (obligatoire pour la dichotomie)
+    // 1. On remplit le tableau avec des nombres triés (obligatoire pour la recherche dichotomique)
     printf("Tableau trie :\n");
     for (int i = 0; i < 100; i++) {
         tableau[i] = i * 3; // Exemple : 0, 3, 6, 9, 12...
