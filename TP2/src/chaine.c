@@ -2,7 +2,7 @@
 
 int main() {
     char s1[] = "Buenos dias";
-    char s2[] = " Mundo";
+    char s2[] = " Mundo !";
     char copie[50];      // Un espace vide pour la copie
     char concat[100];    // Un espace assez grand pour s1 + s2
 
