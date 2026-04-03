@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int main() {
-    int n = 7; // Hauteur de la pyramide (modifiable)
+    int n = 9; // Hauteur de la pyramide (modifiable)
     int i, j;
 
     for (i = 1; i <= n; i++) {
