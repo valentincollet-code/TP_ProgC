@@ -22,7 +22,7 @@ int main() {
         *(p_float + i) = (float)(rand() % 100) / 10.0f; // Float aléatoire
     }
 
-    // 2. Affichage AVANT multiplication
+    // 2. Affichage avant multiplication
     printf("Tableau d'entiers (avant) : ");
     for (int i = 0; i < taille; i++) printf("%d ", *(p_int + i));
     
@@ -37,7 +37,7 @@ int main() {
         }
     }
 
-    // 4. Affichage APRÈS multiplication
+    // 4. Affichage après multiplication
     printf("\n\nTableau d'entiers (après * 3 sur indices pairs) : ");
     for (int i = 0; i < taille; i++) printf("%d ", *(p_int + i));
 
