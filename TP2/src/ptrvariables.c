@@ -11,7 +11,7 @@ int main() {
     int *ptr_i = &i;
     float *ptr_f = &f;
 
-    // 3. Affichage AVANT manipulation
+    // 3. Affichage avantmanipulation
     printf("Avant la manipulation :\n");
     printf("Adresse de i : %p, Valeur de i : %x\n", (void*)ptr_i, i);
     printf("Adresse de f : %p, Valeur de f : %x\n", (void*)ptr_f, *(unsigned int*)&f);
@@ -22,7 +22,7 @@ int main() {
 
     printf("\nAprès la manipulation :\n");
     
-    // 5. Affichage APRÈS manipulation
+    // 5. Affichage après manipulation
     printf("Adresse de i : %p, Valeur de i : %x\n", (void*)ptr_i, i);
     printf("Adresse de f : %p, Valeur de f : %x\n", (void*)ptr_f, *(unsigned int*)&f);
 
