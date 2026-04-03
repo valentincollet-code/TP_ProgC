@@ -11,7 +11,7 @@ void echanger(int *a, int *b) {
 
 // Fonction de Partition (Cœur de Quicksort)
 int partition(int tableau[], int bas, int haut) {
-    int pivot = tableau[haut]; // On choisit le dernier élément comme pivot
+    int pivot = tableau[haut]; // On prend le dernier élément comme pivot
     int i = (bas - 1);         // Index du plus petit élément
 
     for (int j = bas; j <= haut - 1; j++) {
