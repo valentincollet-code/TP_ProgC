@@ -4,7 +4,7 @@
 int main() {
     // On utilise un 'unsigned int' pour éviter les problèmes de signe avec les décalages
     // Essai d'un chiffre pour obtenir 1 au résultat (grand nombre car on regarde le 4eme et 20eme bits de gauche de la variable d)
-    unsigned int d = 268439552; // Exemple de valeur
+    unsigned int d = 478439552; // Exemple de valeur
 
     /* En C, on compte souvent de droite à gauche (0 à 31).
        Si on parle du 4ème bit en partant de la gauche (bit 28) 
