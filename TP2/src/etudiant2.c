@@ -21,17 +21,37 @@ int main() {
     classe[0].note_prog = 16;
     classe[0].note_os = 18;
 
-    // Ajout d'un deuxième étudiant pour l'exemple
-    strcpy(classe[1].nom, "Martin");
-    strcpy(classe[1].prenom, "Pierre");
-    strcpy(classe[1].adresse, "22, Boulevard Niels Bohr, Lyon");
-    classe[1].note_prog = 14.0;
-    classe[1].note_os = 14.1;
+    // Ajout étudiant 2
+    strcpy(classe[1].nom, "Bouveret");
+    strcpy(classe[1].prenom, "Clément");
+    strcpy(classe[1].adresse, "Rue Albert, Saint-Maure");
+    classe[1].note_prog = 20.0;
+    classe[1].note_os = 19.0;
 
-    // (Tu peux remplir les 3 autres de la même manière...)
+    // Ajout étudiant 3
+    strcpy(classe[2].nom, "Dia");
+    strcpy(classe[2].prenom, "Demba");
+    strcpy(classe[2].adresse, "Rue Rivoli, Paris");
+    classe[2].note_prog = 16.0;
+    classe[2].note_os = 17.0;
+
+    // Ajout étudiant 4
+    strcpy(classe[3].nom, "Titiana");
+    strcpy(classe[3].prenom, "Jeanette");
+    strcpy(classe[3].adresse, "Rue Gaston, Lieusaint");
+    classe[3].note_prog = 19.0;
+    classe[3].note_os = 18.0;
+
+    // Ajout étudiant 5
+    strcpy(classe[4].nom, "Valadier");
+    strcpy(classe[4].prenom, "Julien");
+    strcpy(classe[4].adresse, "Avenue de l'ICAM, Paris");
+    classe[4].note_prog = 19.0;
+    classe[4].note_os = 19.0;
+
 
     // Affichage
-    for (int i = 0; i < 2; i++) { // On affiche les 2 remplis
+    for (int i = 0; i < 5; i++) { // On affiche les 5 étudiants
         printf("Étudiant.e %d :\n", i + 1);
         printf("Nom : %s\n", classe[i].nom);
         printf("Prénom : %s\n", classe[i].prenom);
