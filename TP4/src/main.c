@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "operator.h"
+#include "fichier.h"
 
 // Prototypes des fonctions d'entrée pour chaque exercice
 void exercice4_1();
@@ -11,7 +12,7 @@ int main() {
 
     printf("=== Menu de selection ===\n");
     printf("1. Exercice 4.1 (Operations de base)\n");
-    printf("2. Exercice 4.2 (Carre et Cube)\n");
+    printf("2. Exercice 4.2 (Gestion de fichiers)\n");
     printf("3. Exercice 4.7 (Operations Bitwise)\n");
     printf("Votre choix : ");
     scanf("%d", &choix);
@@ -57,20 +58,32 @@ void exercice4_1() {
 
 // --- ENTREE EXERCICE 4.2 ---
 void exercice4_2() {
-    int n, res;
-    char choix;
-    printf("\n[Ex 4.2] Calculer (c)arre ou (u)be ? ");
-    scanf(" %c", &choix);
-    printf("Nombre : ");
-    scanf("%d", &n);
+    int choix;
+    char nom_de_fichier[100];
+    char message[256];
 
-    if (choix == 'c') res = carre(n);
-    else if (choix == 'u') res = cube(n);
-    else { printf("Choix invalide.\n"); return; }
+    printf("Que souhaitez-vous faire ?\n");
+    printf("1. Lire un fichier\n");
+    printf("2. Ecrire dans un fichier\n");
+    printf("Votre choix : ");
+    scanf("%d", &choix);
 
-    printf("Resultat : %d\n", res);
+    if (choix == 1) {
+        printf("\nEntrez le nom du fichier a lire : ");
+        scanf("%s", nom_de_fichier);
+        lire_fichier(nom_de_fichier); // Appelle ta fonction de fichier.c
+    }
+    else if (choix == 2) {
+        printf("\nEntrez le nom du fichier dans lequel vous souhaitez ecrire : ");
+        scanf("%s", nom_de_fichier);
+
+        printf("Entrez le message a ecrire : ");
+        getchar(); // Nettoyage indispensable du buffer
+        fgets(message, sizeof(message), stdin); // Saisie du message
+
+        ecrire_dans_fichier(nom_de_fichier, message); // Appelle ta fonction
+    }
 }
-
 // --- ENTREE EXERCICE 4.7 ---
 void exercice4_7() {
     // Ici tu mettras la logique pour les shifts (<<, >>) et XOR (^)
