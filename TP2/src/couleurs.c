@@ -22,7 +22,7 @@ int main() {
         tableau[i].a = 0xff;
     }
 
-    // On peut changer la deuxième couleur pour tester (comme dans l'exemple)
+    // On peut changer la deuxième couleur pour tester (voir l'exemple)
     tableau[1].r = 44;  // 0x2c
     tableau[1].g = 200; // 0xc8
     tableau[1].b = 100; // 0x64
