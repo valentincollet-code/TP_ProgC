@@ -12,7 +12,7 @@ int main() {
         if (num == 0) {
             printf("0");
         } else {
-            // Parcourir les bits du plus significatif au moins significatif
+            // On parcoure les bits du plus significatif au moins significatif
             // On commence à 31 car un int fait 32 bits (4 octets)
             int a_commence = 0;
             for (int i = 31; i >= 0; i--) {
