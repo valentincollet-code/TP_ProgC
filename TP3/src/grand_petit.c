@@ -9,7 +9,7 @@ int main() {
     // Initialisation du générateur de nombres aléatoires
     srand(time(NULL));
 
-    // Remplissage du tableau avec des valeurs entre 1 et 1000
+    // On remplit le tableau avec des valeurs entre 1 et 1000
     for (int i = 0; i < 100; i++) {
         tableau[i] = (rand() % 1000) + 1;
     }
