@@ -8,18 +8,18 @@ int main() {
     char *phrases[10] = {
         "Bonjour, comment ca va ?",
         "Il fait beau aujourd'hui.",
-        "Beaucoup d'exercice dans ce TP !.",
-        "J'ai utilisé CLion.",
+        "Beaucoup d'exercice dans ce TP !",
+        "J'ai utilisé CLion pour faire ce TP.",
         "La programmation en C est intéressante.",
         "C'est le week-end.",
-        "Il fait beau dehors.",
+        "Il fait froid !",
         "La recherche dans un tableau est interessante.",
         "Les structures de donnees sont importantes.",
         "Programmer en C, c'est genial."
     };
 
     // La phrase cible
-    char *recherche = "Il fait beau aujourd'hui.";
+    char *recherche = "Beaucoup d'exercice dans ce TP !";
     int trouve = 0;
 
     // 2. Boucle pour parcourir les 10 phrases
