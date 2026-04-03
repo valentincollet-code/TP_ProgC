@@ -5,7 +5,7 @@ void afficher_octets(void *ptr, size_t taille) {
     unsigned char *p = (unsigned char *)ptr;
     for (size_t i = 0; i < taille; i++) {
         // %02x affiche en hexadécimal sur 2 caractères
-        printf("%02x ", p[i]);
+        printf("%02x ", *(p + i));
     }
     printf("\n\n");
 }
