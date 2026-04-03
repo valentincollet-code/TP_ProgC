@@ -1,12 +1,45 @@
 #include "operator.h"
 
-int somme(int n1, int n2) { return n1 + n2; }
-int difference(int n1, int n2) { return n1 - n2; }
-int produit(int n1, int n2) { return n1 * n2; }
-int quotient(int n1, int n2) { return (n2 != 0) ? n1 / n2 : 0; }
-int modulo(int n1, int n2) { return (n2 != 0) ? n1 % n2 : 0; }
-int et_logique(int n1, int n2) { return n1 & n2; }
-int ou_logique(int n1, int n2) { return n1 | n2; }
-int negation(int n1, int n2) {
-    return ~n1; // L'opérateur tilde ~ fait l'inversion des bits en C
+// --- Exercice 4.1 ---
+int somme(int num1, int num2) {
+    return num1 + num2;
+}
+
+int difference(int num1, int num2) {
+    return num1 - num2;
+}
+
+int produit(int num1, int num2) {
+    return num1 * num2;
+}
+
+int quotient(int num1, int num2) {
+    if (num2 != 0) return num1 / num2;
+    return 0; // Sécurité division par zéro
+}
+
+int modulo(int num1, int num2) {
+    if (num2 != 0) return num1 % num2;
+    return 0;
+}
+
+int et_logique(int num1, int num2) {
+    return num1 & num2;
+}
+
+int ou_logique(int num1, int num2) {
+    return num1 | num2;
+}
+
+int negation(int num1) {
+    return ~num1;
+}
+
+// --- Exercice 4.2 ---
+int carre(int n) {
+    return n * n;
+}
+
+int cube(int n) {
+    return n * n * n;
 }

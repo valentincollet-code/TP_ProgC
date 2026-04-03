@@ -1,12 +1,19 @@
 #ifndef OPERATOR_H
 #define OPERATOR_H
 
-int somme(int n1, int n2);
-int difference(int n1, int n2);
-int produit(int n1, int n2);
-int quotient(int n1, int n2);
-int modulo(int n1, int n2);
-int et_logique(int n1, int n2);
-int ou_logique(int n1, int n2);
-int negation(int n1, int n2);
+// Exercice 4.1
+int somme(int num1, int num2);
+int difference(int num1, int num2);
+int produit(int num1, int num2);
+int quotient(int num1, int num2);
+int modulo(int num1, int num2);
+int et_logique(int num1, int num2);
+int ou_logique(int num1, int num2);
+int negation(int num1);
+
+// Ajout pour l'exercice 4.2 (Anticipation)
+int carre(int n);
+int cube(int n);
+
 #endif
+

@@ -1,42 +1,78 @@
 #include <stdio.h>
 #include "operator.h"
 
+// Prototypes des fonctions d'entrée pour chaque exercice
+void exercice4_1();
+void exercice4_2();
+void exercice4_7();
+
 int main() {
-    int n1, n2, resultat;
-    char op;
+    int choix;
 
-    // 1. On demande d'abord l'opérateur
-    printf("Choisissez l'operateur (+, -, *, /, %%, &, |, ~) :\n");
-    scanf(" %c", &op);
+    printf("=== Menu de selection ===\n");
+    printf("1. Exercice 4.1 (Operations de base)\n");
+    printf("2. Exercice 4.2 (Carre et Cube)\n");
+    printf("3. Exercice 4.7 (Operations Bitwise)\n");
+    printf("Votre choix : ");
+    scanf("%d", &choix);
 
-    // 2. On demande au moins le premier nombre
-    printf("Entrez num1 :\n");
-    scanf("%d", &n1);
-
-    // 3. On demande le deuxième nombre SEULEMENT si ce n'est pas une négation
-    if (op != '~') {
-        printf("Entrez num2 :\n");
-        scanf("%d", &n2);
-    } else {
-        n2 = 0; // On initialise n2 à 0 par sécurité, même s'il ne servira pas
+    switch(choix) {
+        case 1: exercice4_1(); break;
+        case 2: exercice4_2(); break;
+        case 3: exercice4_7(); break;
+        default: printf("Choix invalide.\n");
     }
-
-    // 4. Le switch reste le même
-    switch(op) {
-        case '+': resultat = somme(n1, n2); break;
-        case '-': resultat = difference(n1, n2); break;
-        case '*': resultat = produit(n1, n2); break;
-        case '/': resultat = quotient(n1, n2); break;
-        case '%': resultat = modulo(n1, n2); break;
-        case '&': resultat = et_logique(n1, n2); break;
-        case '|': resultat = ou_logique(n1, n2); break;
-        case '~': resultat = negation(n1, n2); break;
-        default:
-            printf("Erreur : Operateur inconnu.\n");
-            return 1;
-    }
-
-    printf("Resultat : %d\n", resultat);
 
     return 0;
+}
+
+// --- ENTREE EXERCICE 4.1 ---
+void exercice4_1() {
+    int n1, n2, res;
+    char op;
+    printf("\n[Ex 4.1] Operateur (+, -, *, /, %%, &, |, ~) : ");
+    scanf(" %c", &op);
+
+    printf("Nombre 1 : ");
+    scanf("%d", &n1);
+
+    if (op != '~') {
+        printf("Nombre 2 : ");
+        scanf("%d", &n2);
+    }
+
+    switch(op) {
+        case '+': res = somme(n1, n2); break;
+        case '-': res = difference(n1, n2); break;
+        case '*': res = produit(n1, n2); break;
+        case '/': res = quotient(n1, n2); break;
+        case '%': res = modulo(n1, n2); break;
+        case '&': res = et_logique(n1, n2); break;
+        case '|': res = ou_logique(n1, n2); break;
+        case '~': res = negation(n1); break; // Correction : 1 seul argument !
+        default: printf("Operateur inconnu.\n"); return;
+    }
+    printf("Resultat : %d\n", res);
+}
+
+// --- ENTREE EXERCICE 4.2 ---
+void exercice4_2() {
+    int n, res;
+    char choix;
+    printf("\n[Ex 4.2] Calculer (c)arre ou (u)be ? ");
+    scanf(" %c", &choix);
+    printf("Nombre : ");
+    scanf("%d", &n);
+
+    if (choix == 'c') res = carre(n);
+    else if (choix == 'u') res = cube(n);
+    else { printf("Choix invalide.\n"); return; }
+
+    printf("Resultat : %d\n", res);
+}
+
+// --- ENTREE EXERCICE 4.7 ---
+void exercice4_7() {
+    // Ici tu mettras la logique pour les shifts (<<, >>) et XOR (^)
+    printf("\n[Ex 4.7] Logique bitwise avancee (a implementer).\n");
 }
