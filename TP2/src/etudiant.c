@@ -4,13 +4,13 @@ int main() {
     int nb_etudiants = 5;
 
     // Tableaux de pointeurs pour les chaînes de caractères
-    char *noms[] = {"Collet", "Bouveret", "Dia", "Titiana", "DECOOPMAN"};
-    char *prenoms[] = {"Valentin", "Clément", "Demba", "Janette", "Sandy"};
-    char *adresses[] = {"Savigny sur Orge", "Saint Maure", "Paris", "Lieusaint", "Melun"};
+    char *noms[] = {"Collet", "Bouveret", "Dia", "Titiana", "VALADIER"};
+    char *prenoms[] = {"Valentin", "Clément", "Demba", "Janette", "Julien"};
+    char *adresses[] = {"Savigny sur Orge", "Saint Maure", "Paris", "Lieusaint", "Paris"};
 
     // Tableaux pour les notes
-    float notes_prog[] = {16, 20, 18.0, 19, 14.0};
-    float notes_os[] = {18, 20, 17.0, 18, 17};
+    float notes_prog[] = {16, 20, 18, 19, 14};
+    float notes_os[] = {18, 20, 17, 18, 17};
 
     printf("Gestion des Données Étudiantes :\n");
     printf("--------------------------------\n");
