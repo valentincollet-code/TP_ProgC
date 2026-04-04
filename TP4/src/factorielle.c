@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-// Définition de la fonction factorielle (Récursive)
+// Définition de la fonction factorielle
 int factorielle(int num) {
     if (num == 0) {
         printf("fact(0): 1\n");
