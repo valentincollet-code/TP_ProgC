@@ -20,14 +20,17 @@ int main() {
     Etudiant promo[5];
     char ligne[300];
 
+    // On vide le fichier avant de commencer la saisie des 5 nouveaux
+    ecrire_dans_fichier("etudiant.txt", "");
+
     for (int i = 0; i < 5; i++) {
-        printf("--- Étudiant %d ---\n", i + 1);
-        
+        printf("--- Etudiant %d ---\n", i + 1);
+
         printf("Nom : ");
         fgets(promo[i].nom, 50, stdin);
         promo[i].nom[strcspn(promo[i].nom, "\n")] = 0;
 
-        printf("Prénom : ");
+        printf("Prenom : ");
         fgets(promo[i].prenom, 50, stdin);
         promo[i].prenom[strcspn(promo[i].prenom, "\n")] = 0;
 
@@ -39,16 +42,17 @@ int main() {
         if (scanf("%d", &promo[i].note1) != 1) promo[i].note1 = 0;
         printf("Note 2 : ");
         if (scanf("%d", &promo[i].note2) != 1) promo[i].note2 = 0;
-        vider_buffer(); 
-        
+
+        vider_buffer();
         printf("\n");
 
-        sprintf(ligne, "Nom: %s | Prenom: %s | Adresse: %s | Notes: %d, %d", 
+        // Formatage avec le \n à la fin
+        sprintf(ligne, "Nom: %s | Prenom: %s | Adresse: %s | Notes: %d, %d\n",
                 promo[i].nom, promo[i].prenom, promo[i].adresse, promo[i].note1, promo[i].note2);
-        
+
         ajouter_dans_fichier("etudiant.txt", ligne);
     }
 
-    printf("Terminé ! Les 5 étudiants sont enregistrés dans etudiant.txt\n");
+    printf("Termine ! Les 5 etudiants sont enregistres dans etudiant.txt\n");
     return 0;
 }

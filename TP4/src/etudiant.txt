@@ -1,0 +1,5 @@
+Nom: COLLET | Prenom: Valentin | Adresse: Rue de cerisiers | Notes: 17, 16
+Nom: BOUVERET | Prenom: Clément | Adresse: Rue dde github | Notes: 18, 17
+Nom: VALADIER | Prenom: Julien | Adresse: Rue de l'ICAM | Notes: 19, 17
+Nom: DIA | Prenom: Demba | Adresse: Rue 2028 | Notes: 16, 17
+Nom: TITIANA | Prenom: Jeanette | Adresse: Rue de la persévérance | Notes: 17, 16
