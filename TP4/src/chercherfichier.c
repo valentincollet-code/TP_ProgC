@@ -19,7 +19,7 @@ int main() {
     scanf("%s", nom_fichier);
     vider_buffer();
 
-    // 2. Demander la phrase à rechercher
+    // 2. Demander la phrase à rechercher dans le fichier
     printf("Entrez la phrase que vous souhaitez rechercher : ");
     fgets(phrase, 255, stdin);
     fflush(stdout); // Force l'affichage immédiat de la question
