@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "operator.h"
 #include "fichier.h"
+#include "liste.h"
 
 // Prototypes des fonctions d'entrée pour chaque exercice
 void exercice4_1();
@@ -86,6 +87,16 @@ void exercice4_2() {
 }
 // --- ENTREE EXERCICE 4.7 ---
 void exercice4_7() {
-    // Ici tu mettras la logique pour les shifts (<<, >>) et XOR (^)
-    printf("\n[Ex 4.7] Logique bitwise avancee (a implementer).\n");
+    liste_couleurs ma_liste;
+    init_liste(&ma_liste);
+
+    // Exemple de couleurs comme demandé dans l'énoncé
+    couleur couleur1 = {0xFF, 0x00, 0x00, 0xFF}; // Rouge
+    couleur couleur2 = {0x00, 0xFF, 0x00, 0xFF}; // Vert
+
+    insertion(&couleur1, &ma_liste);
+    insertion(&couleur2, &ma_liste);
+
+    printf("\nListe des couleurs :\n");
+    parcours(&ma_liste);
 }
