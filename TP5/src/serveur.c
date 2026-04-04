@@ -3,94 +3,63 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <sys/socket.h>
-#include "serveur.h" // Contient le #define PORT 8089
+#include "serveur.h"
 
-// Fonction de calcul pour l'exercice 5.4
-void envoie_operateur_numeros(int client_fd, char *message) {
+// Fonction imposée par l'Exo 5.5
+void recois_numeros_calcule(int client_fd, char *message) {
     char op;
-    int n1, n2;
+    int n1, n2, res = 0;
 
-    // Découpage du message reçu (ex: "+ 10 20")
-    if (sscanf(message, " %c %d %d", &op, &n1, &n2) == 3) {
-        int res = 0;
-        switch (op) {
-            case '+': res = n1 + n2; break;
-            case '-': res = n1 - n2; break;
-            case '*': res = n1 * n2; break;
-            case '/': res = (n2 != 0) ? n1 / n2 : 0; break;
-            default:  res = 0; break;
-        }
+    if (sscanf(message, "calcule : %c %d %d", &op, &n1, &n2) == 3) {
+        if (op == '+') res = n1 + n2;
+        else if (op == '-') res = n1 - n2;
+        else if (op == '*') res = n1 * n2;
+        else if (op == '/' && n2 != 0) res = n1 / n2;
 
         char reponse[256];
-        sprintf(reponse, "%d", res);
-        // On renvoie le résultat au client
+        sprintf(reponse, "calcule : %d", res);
         write(client_fd, reponse, strlen(reponse));
-        printf("[LOG] Calcul : %d %c %d = %d\n", n1, op, n2, res);
+
+        // Log optionnel pour voir le serveur travailler
+        printf("[SERVEUR] %d %c %d = %d\n", n1, op, n2, res);
     }
 }
 
 int main() {
     int server_fd, client_fd;
     struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char buffer[1024] = {0};
+    int opt = 1, addrlen = sizeof(address);
+    char buffer[1024];
 
-    // 1. Création de la socket
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("Socket échouée");
-        exit(EXIT_FAILURE);
-    }
-
-    // 2. Option pour redémarrer le serveur rapidement sans erreur "Address already in use"
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // 3. Configuration de l'adresse (Utilise le PORT du header)
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT); // <--- Ici, PORT sera 8089 (ou 8080 selon ton .h)
+    address.sin_port = htons(PORT);
 
-    // 4. Liaison (Bind)
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("Bind échoué");
         exit(EXIT_FAILURE);
     }
+    listen(server_fd, 5);
 
-    // 5. Écoute
-    if (listen(server_fd, 3) < 0) {
-        perror("Listen échoué");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("SERVEUR OK - Écoute sur le port %d...\n", PORT);
+    printf("SERVEUR OK (Port %d)...\n", PORT);
 
     while (1) {
-        // Attente d'un client
         client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        if (client_fd < 0) {
-            perror("Accept échoué");
-            continue;
-        }
+        if (client_fd < 0) continue;
 
-        printf("Client connecté !\n");
-
-        // Dialogue avec le client
         while (1) {
             memset(buffer, 0, 1024);
-            int valread = read(client_fd, buffer, 1024);
+            int n = read(client_fd, buffer, 1024);
+            if (n <= 0) break; // Client déconnecté
 
-            if (valread <= 0) {
-                printf("Client déconnecté.\n");
-                break;
+            if (strncmp(buffer, "calcule :", 9) == 0) {
+                recois_numeros_calcule(client_fd, buffer);
             }
-
-            // Traitement du message (Exercice 5.4)
-            envoie_operateur_numeros(client_fd, buffer);
         }
         close(client_fd);
     }
-
-    close(server_fd);
     return 0;
 }
