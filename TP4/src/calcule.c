@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
             return 1;
     }
 
+// Affichage résultats
     printf("Résultat : %d\n", resultat);
     return 0;
 }
