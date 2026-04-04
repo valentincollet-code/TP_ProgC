@@ -5,12 +5,19 @@
 #include <arpa/inet.h>
 #include "serveur.h"
 
-// Fonction imposée par l'Exo 5.5
+#ifndef PORT
+#define PORT 8089
+#endif
+
+// Fonction demandée par l'exercice 5.5/5.6
 void recois_numeros_calcule(int client_fd, char *message) {
     char op;
     int n1, n2, res = 0;
 
-    if (sscanf(message, "calcule : %c %d %d", &op, &n1, &n2) == 3) {
+    // Analyse flexible pour accepter "calcule : + 10 20" OU "+ 10 20"
+    if (sscanf(message, "calcule : %c %d %d", &op, &n1, &n2) == 3 ||
+        sscanf(message, " %c %d %d", &op, &n1, &n2) == 3) {
+
         if (op == '+') res = n1 + n2;
         else if (op == '-') res = n1 - n2;
         else if (op == '*') res = n1 * n2;
@@ -20,8 +27,8 @@ void recois_numeros_calcule(int client_fd, char *message) {
         sprintf(reponse, "calcule : %d", res);
         write(client_fd, reponse, strlen(reponse));
 
-        // Log optionnel pour voir le serveur travailler
-        printf("[SERVEUR] %d %c %d = %d\n", n1, op, n2, res);
+        // Log pour le terminal 1
+        printf("[SERVEUR] Opération traitée : %d %c %d = %d\n", n1, op, n2, res);
     }
 }
 
@@ -39,25 +46,24 @@ int main() {
     address.sin_port = htons(PORT);
 
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("Bind échoué");
+        perror("Bind failed");
         exit(EXIT_FAILURE);
     }
     listen(server_fd, 5);
 
-    printf("SERVEUR OK (Port %d)...\n", PORT);
+    printf("SERVEUR 5.6 (Port %d) - En attente de messages...\n", PORT);
 
+    // Boucle infinie pour accepter les clients
     while (1) {
         client_fd = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-        if (client_fd < 0) continue;
 
+        // Boucle pour gérer plusieurs demandes du même client séquentiellement
         while (1) {
             memset(buffer, 0, 1024);
-            int n = read(client_fd, buffer, 1024);
-            if (n <= 0) break; // Client déconnecté
+            int valread = read(client_fd, buffer, 1024);
+            if (valread <= 0) break; // Sortie si le client se déconnecte
 
-            if (strncmp(buffer, "calcule :", 9) == 0) {
-                recois_numeros_calcule(client_fd, buffer);
-            }
+            recois_numeros_calcule(client_fd, buffer);
         }
         close(client_fd);
     }
